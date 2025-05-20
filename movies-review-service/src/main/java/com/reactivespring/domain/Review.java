@@ -3,11 +3,12 @@ package com.reactivespring.domain;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+
 
 @Data
 @NoArgsConstructor
@@ -17,8 +18,9 @@ public class Review {
 
     @Id
     private String reviewId;
+    @NotNull(message = "rating.movieInfoId : must not be null")
     private Long movieInfoId;
     private String comment;
-    //@Min(value = 0L, message = "rating.negative : rating is negative and please pass a non-negative value")
+    @Min(value = 0L, message = "rating.negative : please pass a non-negative value")
     private Double rating;
 }

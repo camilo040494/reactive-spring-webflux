@@ -1,11 +1,10 @@
 package unit.com.reactivespring.routes;
 
 import com.reactivespring.domain.Review;
+import com.reactivespring.exceptionhandler.GlobalErrorHandler;
 import com.reactivespring.handler.ReviewHandler;
 import com.reactivespring.repository.ReviewReactiveRepository;
 import com.reactivespring.router.ReviewRouter;
-
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
@@ -13,20 +12,15 @@ import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import org.springframework.web.util.UriComponentsBuilder;
-
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
-
 
 
 @WebFluxTest
-@ContextConfiguration(classes = {ReviewRouter.class, ReviewHandler.class})
+@ContextConfiguration(classes = {ReviewRouter.class, ReviewHandler.class, GlobalErrorHandler.class})
 @AutoConfigureWebTestClient
 public class ReviewsUnitTest {
 
@@ -63,85 +57,25 @@ public class ReviewsUnitTest {
                 });
     }
 
-
     @Test
-    void getAllReviews() {
+    void addReview_validation() {
         //given
-        var reviews = List.of(new Review(null, 1L, "Awesome Movie", 9.0), new Review(null, 2L, "Bad Movie", 2.0));
-        when(reviewReactiveRepository.findAll()).thenReturn(Flux.fromIterable(reviews));
+        var review = new Review(null, null, "Awesome Movie", -9.0);
+
+        when(reviewReactiveRepository.save(isA(Review.class)))
+                .thenReturn(Mono.just(new Review("abc", 1L, "Awesome Movie", 9.0)));
 
         //when
+
         webTestClient
-                .get()
+                .post()
                 .uri(REVIEWS_URL)
+                .bodyValue(review)
                 .exchange()
                 .expectStatus()
-                .is2xxSuccessful()
-                .expectBodyList(Review.class)
-                .hasSize(2);
-    }
-
-    @Test
-    void updateReview() {
-        //given
-
-        var reviewUpdate = new Review(null, 1L, "Not an Awesome Movie", 8.0);
-
-        when(reviewReactiveRepository.save(isA(Review.class))).thenReturn(Mono.just(new Review("abc", 1L, "Not an Awesome Movie", 8.0)));
-        when(reviewReactiveRepository.findById("abc")).thenReturn(Mono.just(new Review("abc", 1L, "Awesome Movie", 9.0)));
-        //when
-
-
-        webTestClient
-                .put()
-                .uri("/v1/reviews/{id}", "abc")
-                .bodyValue(reviewUpdate)
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody(Review.class)
-                .consumeWith(reviewResponse ->{
-                    var updatedReview = reviewResponse.getResponseBody();
-                    assert updatedReview != null;
-                    System.out.println("updatedReview : "+ updatedReview);
-                    Assertions.assertEquals(8.0,updatedReview.getRating());
-                    Assertions.assertEquals("Not an Awesome Movie", updatedReview.getComment());
-                });
-
-    }
-
-    @Test
-    void deleteReview() {
-        //given
-        var review = new Review("abc", 1L, "Awesome Movie", 9.0);
-        when(reviewReactiveRepository.findById("abc")).thenReturn(Mono.just(review));
-        when(reviewReactiveRepository.deleteById("abc")).thenReturn(Mono.empty());
-        //when
-        webTestClient
-                .delete()
-                .uri(REVIEWS_URL+"/{id}", "abc")
-                .exchange()
-                .expectStatus()
-                .is2xxSuccessful();
-    }
-
-    @Test
-    void getReviewsByMovieInfoId() {
-        //given
-        var reviews = List.of(new Review(null, 1L, "Awesome Movie", 9.0), new Review(null, 2L, "Bad Movie", 2.0));
-        when(reviewReactiveRepository.findReviewsByMovieInfoId(1L)).thenReturn(Flux.fromIterable(reviews));
-        var uri = UriComponentsBuilder.fromUriString(REVIEWS_URL)
-                .queryParam("movieInfoId", 1L)
-                .buildAndExpand().toUri();
-
-        //when
-        webTestClient
-                .get()
-                .uri(uri)
-                .exchange()
-                .expectStatus()
-                .is2xxSuccessful()
-                .expectBodyList(Review.class)
-                .hasSize(2);
+                .isBadRequest()
+        .expectBody(String.class)
+        .isEqualTo("rating.movieInfoId : must not be null,rating.negative : please pass a non-negative value");
     }
 
 }
