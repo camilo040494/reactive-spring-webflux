@@ -1,0 +1,6 @@
+com\reactivespring\controller\FluxAndMonoController.class
+com\reactivespring\controller\MoviesInfoController.class
+com\reactivespring\domain\MovieInfo.class
+com\reactivespring\MoviesInfoServiceApplication.class
+com\reactivespring\repository\MovieInfoRepository.class
+com\reactivespring\service\MoviesInfoService.class
