@@ -4,6 +4,8 @@ import com.reactivespring.domain.Review;
 import com.reactivespring.handler.ReviewHandler;
 import com.reactivespring.repository.ReviewReactiveRepository;
 import com.reactivespring.router.ReviewRouter;
+
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
@@ -82,25 +84,29 @@ public class ReviewsUnitTest {
     @Test
     void updateReview() {
         //given
-        var review = new Review("abc", 1L, "Awesome Movie", 9.0);
-        when(reviewReactiveRepository.findById("abc")).thenReturn(Mono.just(review));
-        when(reviewReactiveRepository.save(isA(Review.class)))
-                .thenReturn(Mono.just(new Review("abc", 1L, "Awesome Movie", 9.0)));
 
+        var reviewUpdate = new Review(null, 1L, "Not an Awesome Movie", 8.0);
+
+        when(reviewReactiveRepository.save(isA(Review.class))).thenReturn(Mono.just(new Review("abc", 1L, "Not an Awesome Movie", 8.0)));
+        when(reviewReactiveRepository.findById("abc")).thenReturn(Mono.just(new Review("abc", 1L, "Awesome Movie", 9.0)));
         //when
+
+
         webTestClient
                 .put()
-                .uri(REVIEWS_URL+"/{id}", "abc")
-                .bodyValue(review)
+                .uri("/v1/reviews/{id}", "abc")
+                .bodyValue(reviewUpdate)
                 .exchange()
-                .expectStatus()
-                .isOk()
+                .expectStatus().isOk()
                 .expectBody(Review.class)
-                .consumeWith(reviewEntityExchangeResult -> {
-                    var updatedReview = reviewEntityExchangeResult.getResponseBody();
-                    assert updatedReview!=null;
-                    assert updatedReview.getReviewId()!=null;
+                .consumeWith(reviewResponse ->{
+                    var updatedReview = reviewResponse.getResponseBody();
+                    assert updatedReview != null;
+                    System.out.println("updatedReview : "+ updatedReview);
+                    Assertions.assertEquals(8.0,updatedReview.getRating());
+                    Assertions.assertEquals("Not an Awesome Movie", updatedReview.getComment());
                 });
+
     }
 
     @Test
