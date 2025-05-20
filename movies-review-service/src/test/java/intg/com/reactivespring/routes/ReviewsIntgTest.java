@@ -91,31 +91,31 @@ public class ReviewsIntgTest {
     }
 
     @Test
-void updateReview() {
-    //given
-    var review = new Review(null, 1L, "Awesome Movie", 9.0);
-    var savedReview = reviewReactiveRepository.save(review).block();
-    var reviewUpdate = new Review(null, 1L, "Not an Awesome Movie", 8.0);
-    //when
-    assert savedReview != null;
+    void updateReview() {
+        //given
+        var review = new Review(null, 1L, "Awesome Movie", 9.0);
+        var savedReview = reviewReactiveRepository.save(review).block();
+        var reviewUpdate = new Review(null, 1L, "Not an Awesome Movie", 8.0);
+        //when
+        assert savedReview != null;
 
-    webTestClient
-            .put()
-            .uri(REVIEWS_URL+"/{id}", savedReview.getReviewId())
-            .bodyValue(reviewUpdate)
-            .exchange()
-            .expectStatus().isOk()
-            .expectBody(Review.class)
-            .consumeWith(reviewResponse -> {
-                var updatedReview = reviewResponse.getResponseBody();
-                assert updatedReview != null;
-                System.out.println("updatedReview : " + updatedReview);
-                assert savedReview.getReviewId() != null;
-                Assertions.assertEquals(8.0, updatedReview.getRating());
-                Assertions.assertEquals("Not an Awesome Movie", updatedReview.getComment());
-            });
+        webTestClient
+                .put()
+                .uri(REVIEWS_URL+"/{id}", savedReview.getReviewId())
+                .bodyValue(reviewUpdate)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(Review.class)
+                .consumeWith(reviewResponse -> {
+                    var updatedReview = reviewResponse.getResponseBody();
+                    assert updatedReview != null;
+                    System.out.println("updatedReview : " + updatedReview);
+                    assert savedReview.getReviewId() != null;
+                    Assertions.assertEquals(8.0, updatedReview.getRating());
+                    Assertions.assertEquals("Not an Awesome Movie", updatedReview.getComment());
+                });
 
-}
+    }
 
     @Test
     void deleteReview() {
