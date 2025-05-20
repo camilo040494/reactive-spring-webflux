@@ -133,4 +133,49 @@ class MoviesInfoControllerIntgTest {
 
         //then
     }
+
+    @Test
+    void updateMovieInfo_notfound() {
+        //given
+        var movieInfoId = "def";
+        var movieInfo = new MovieInfo(null, "Dark Knight Rises1",
+                2005, List.of("Christian Bale", "Michael Cane"), LocalDate.parse("2005-06-15"));
+
+        //when
+        webTestClient
+                .put()
+                .uri(MOVIES_INFO_URL+"/{id}", movieInfoId)
+                .bodyValue(movieInfo)
+                .exchange()
+                .expectStatus()
+                .isNotFound();
+
+
+        //then
+    }
+
+    @Test
+    void updateMovieInfo_notfound_approach2() {
+        //given
+        var movieInfoId = "def";
+        var movieInfo = new MovieInfo(null, "Dark Knight Rises1",
+                2005, List.of("Christian Bale", "Michael Cane"), LocalDate.parse("2005-06-15"));
+
+        //when
+        webTestClient
+                .put()
+                .uri(MOVIES_INFO_URL+"/{id}", movieInfoId)
+                .bodyValue(movieInfo)
+                .exchange()
+                .expectStatus()
+                .isNotFound()
+        .expectBody(String.class)
+        .consumeWith(stringEntityExchangeResult -> {
+            var responseBody = stringEntityExchangeResult.getResponseBody();
+            assertEquals("MovieInfo Not Found", responseBody);
+        });
+
+
+        //then
+    }
 }
