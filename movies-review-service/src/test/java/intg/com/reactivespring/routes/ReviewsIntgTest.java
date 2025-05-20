@@ -1,5 +1,6 @@
-package com.reactivespring.routes;
+package intg.com.reactivespring.routes;
 
+import com.reactivespring.MoviesReviewServiceApplication;
 import com.reactivespring.domain.Review;
 import com.reactivespring.repository.ReviewReactiveRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -10,10 +11,11 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = MoviesReviewServiceApplication.class)
 @ActiveProfiles("test")
 @AutoConfigureWebTestClient
 public class ReviewsIntgTest {
@@ -67,4 +69,82 @@ public class ReviewsIntgTest {
 
         //then
     }
+
+    @Test
+    void getAllReviews() {
+        //given
+
+        //when
+        webTestClient
+                .get()
+                .uri(REVIEWS_URL)
+                .exchange()
+                .expectStatus()
+                .is2xxSuccessful()
+                .expectBodyList(Review.class)
+                .consumeWith(listEntityExchangeResult -> {
+                    var responseBody = listEntityExchangeResult.getResponseBody();
+                    assert responseBody!=null;
+                    assert responseBody.size()==3;
+                });
+    }
+
+    @Test
+    void updateReview() {
+        //given
+        var review = new Review(null, 1L, "Awesome Movie", 9.0);
+        var reviewToUpdate = reviewReactiveRepository.findAll().blockFirst();
+        //when
+        webTestClient
+                .put()
+                .uri(REVIEWS_URL+"/{id}", reviewToUpdate.getReviewId())
+                .bodyValue(review)
+                .exchange()
+                .expectStatus()
+                .is2xxSuccessful()
+                .expectBody(Review.class)
+                .consumeWith(movieInfoEntityExchangeResult -> {
+                    var savedReview = movieInfoEntityExchangeResult.getResponseBody();
+                    assert savedReview!=null;
+                    assert savedReview.getReviewId()!=null;
+                });
+    }
+
+    @Test
+    void deleteReview() {
+        //given
+
+        //when
+        webTestClient
+                .delete()
+                .uri(REVIEWS_URL+"/{id}", 1L)
+                .exchange()
+                .expectStatus()
+                .is2xxSuccessful();
+
+    }
+
+    @Test
+    void getReviewsByMovieInfoId() {
+        //given
+        var uri = UriComponentsBuilder.fromUriString(REVIEWS_URL)
+                .queryParam("movieInfoId", 1L)
+                .buildAndExpand().toUri();
+
+        //when
+        webTestClient
+                .get()
+                .uri(uri)
+                .exchange()
+                .expectStatus()
+                .is2xxSuccessful()
+                .expectBodyList(Review.class)
+                .consumeWith(listEntityExchangeResult -> {
+                    var responseBody = listEntityExchangeResult.getResponseBody();
+                    assert responseBody!=null;
+                    assert responseBody.size()==1;
+                });
+
+    }
+
 }
