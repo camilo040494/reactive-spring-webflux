@@ -1,4 +1,4 @@
-package com.reactivespring.controller;
+package intg.com.reactivespring.controller;
 
 public class MoviesControllerIntgTest {
 }

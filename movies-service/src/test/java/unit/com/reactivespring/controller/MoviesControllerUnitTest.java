@@ -1,4 +1,4 @@
-package com.reactivespring.controller;
+package unit.com.reactivespring.controller;
 
 public class MoviesControllerUnitTest {
 }

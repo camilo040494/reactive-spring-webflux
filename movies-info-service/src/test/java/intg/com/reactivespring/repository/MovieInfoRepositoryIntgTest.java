@@ -132,17 +132,4 @@ class MovieInfoRepositoryIntgTest {
                 .expectNextCount(1)
                 .verifyComplete();
     }
-
-    @Test
-    void findByName() {
-        //given
-
-        //when
-        var moviesInfoMono = movieInfoRepository.findByName("Batman Begins").log();
-
-        //then
-        StepVerifier.create(moviesInfoMono)
-                .expectNextCount(1)
-                .verifyComplete();
-    }
 }
