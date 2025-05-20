@@ -178,4 +178,28 @@ class MoviesInfoControllerIntgTest {
 
         //then
     }
+
+    @Test
+    void getMovieInfo_notfound_approach() {
+        //given
+        var movieInfoId = "def";
+
+        //when
+        webTestClient
+                .get()
+                .uri(MOVIES_INFO_URL+"/{id}", movieInfoId)
+                .exchange()
+                .expectStatus()
+                .isNotFound()
+        .expectBody(String.class)
+        .consumeWith(stringEntityExchangeResult -> {
+            var responseBody = stringEntityExchangeResult.getResponseBody();
+            assertEquals("MovieInfo Not Found", responseBody);
+        });
+
+
+        //then
+    }
+
+
 }
